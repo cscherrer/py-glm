@@ -38,7 +38,7 @@ class ExponentialFamily(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def deviance(self, y, mu):
+    def unit_deviance(self, y, mu):
         pass
 
     @abstractmethod
@@ -48,6 +48,14 @@ class ExponentialFamily(metaclass=ABCMeta):
 
 class ExponentialFamilyMixin:
     """Implementations of methods common to all ExponentialFamilies."""
+
+    def deviance(self, y, mu):
+        return np.sum(self.unit_deviance(y,mu))
+
+    def deviance_residuals(self, y, mu):
+        return np.sqrt(self.unit_deviance(y, mu)) * np.sign(y-mu)
+
+
     def penalized_deviance(self, y, mu, alpha, coef):
         return self.deviance(y, mu) + alpha*np.sum(coef[1:]**2)
 
@@ -72,8 +80,8 @@ class Gaussian(ExponentialFamily, ExponentialFamilyMixin):
     def variance(self, mu):
         return np.ones(shape=mu.shape)
 
-    def deviance(self, y, mu):
-        return np.sum((y - mu)**2)
+    def unit_deviance(self, y, mu):
+        return (y-mu)**2
 
     def sample(self, mus, dispersion):
         return np.random.normal(mus, np.sqrt(dispersion))
@@ -103,8 +111,8 @@ class Bernoulli(ExponentialFamily, ExponentialFamilyMixin):
     def variance(self, mu):
         return mu * (1 - mu)
 
-    def deviance(self, y, mu):
-        return -2 * np.sum(y*np.log(mu) + (1 - y)*np.log(1 - mu))
+    def unit_deviance(self, y, mu):
+        return -2 * (y*np.log(mu) + (1 - y)*np.log(1 - mu))
 
     def sample(self, mus, dispersion):
         return np.random.binomial(1, mus)
@@ -139,13 +147,13 @@ class QuasiPoisson(ExponentialFamily, ExponentialFamilyMixin):
     def variance(self, mu):
         return mu
 
-    def deviance(self, y, mu):
+    def unit_deviance(self, y, mu):
         # Need to avoid explicitly calculating y*log(y) when y == 0. 
         y_log_y = np.empty(shape=y.shape)
         y_log_y[y == 0] = 0
         y_non_zero = y[y != 0]
         y_log_y[y != 0] = y_non_zero*np.log(y_non_zero)
-        return 2*np.sum(mu - y - y*np.log(mu) + y_log_y)
+        return 2*(mu - y - y*np.log(mu) + y_log_y)
 
     def sample(self, mus, dispersion):
         return np.random.poisson(mus)
@@ -190,8 +198,8 @@ class Gamma(ExponentialFamily, ExponentialFamilyMixin):
     def variance(self, mu):
         return mu * mu
 
-    def deviance(self, y, mu):
-        return 2 * np.sum((y - mu) / mu - np.log(y / mu))
+    def unit_deviance(self, y, mu):
+        return 2 * ((y - mu) / mu - np.log(y / mu))
 
     def sample(self, mu, dispersion):
         shape, scale = dispersion, mu / dispersion

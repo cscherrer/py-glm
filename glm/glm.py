@@ -63,7 +63,7 @@ class GLM:
         Names for the predictors.
 
     y_names: str
-        Name for the target varaible.
+        Name for the target variable.
 
     coef_: array, shape (n_features, )
         The fit parameter estimates.  None if the model has not yet been fit.
@@ -124,7 +124,7 @@ class GLM:
 
         warm_start: array, shape (n_features, )
             Initial values to use for the parameter estimates in the
-            optimization, useful when fitting an entire regulatization path of
+            optimization, useful when fitting an entire regularization path of
             models.  If not supplies, the initial intercept estimate will be
             the mean of the target array, and all other parameter estimates
             will be initialized to zero.
@@ -138,7 +138,7 @@ class GLM:
         sample_weights: array, shape (n_sample, )
             Sample weights used in the deviance minimized by the model. If
             provided, each term in the deviance being minimized is multiplied
-            by its corrosponding weight.
+            by its corresponding weight.
 
         max_iter: positive integer
             The maximum number of iterations for the fitting algorithm.
@@ -260,6 +260,13 @@ class GLM:
             return self.family.inv_link(np.dot(X, self.coef_))
         else:
             return self.family.inv_link(np.dot(X, self.coef_) + offset)
+
+    def unit_deviance(self, X, y):
+        return self.family.unit_deviance(y, self.predict(X))
+
+    def deviance_residuals(self, X, y):
+        return self.family.deviance_residuals(y, self.predict(X))
+
 
     def score(self, X, y):
         """Return the deviance of a fit model on a given dataset.
