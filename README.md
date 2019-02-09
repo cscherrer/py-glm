@@ -7,7 +7,7 @@
 The `py-glm` library can be installed directly from github.
 
 ```
-pip install git+https://github.com/madrury/py-glm.git
+pip install git+https://github.com/cscherrer/py-glm.git
 ```
 
 ## Features
